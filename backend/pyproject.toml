@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "familypoints-backend"
+version = "0.0.1"
+description = "Backend for FamilyPoints"
+authors = [{name = "Michael Mirhom"}]
+license = {text = "MIT"}
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "alembic",
+    "pydantic",
+    "python-jose",
+    "passlib[bcrypt]",
+    "python-dotenv",
+    "pyjwt",
+    "python-multipart"
+]
+
+[tool.setuptools]
+packages = ["app"]
