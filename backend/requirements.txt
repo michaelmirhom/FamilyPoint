@@ -1,0 +1,16 @@
+fastapi==0.101.1
+uvicorn[standard]==0.22.0
+SQLAlchemy>=2.0,<3.0
+psycopg2-binary==2.9.7
+alembic==1.11.1
+pydantic==1.10.14
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+pytest==7.4.0
+httpx==0.24.0
+bcrypt==3.2.2
+PyJWT==2.8.0
+python-multipart
+
+python-multipart==0.0.20

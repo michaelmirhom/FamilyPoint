@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: familypoints
+      POSTGRES_PASSWORD: familypoints
+      POSTGRES_DB: familypoints_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://familypoints:familypoints@db:5432/familypoints_dev
+      SEED_DB: "true"
+      JWT_SECRET: devsecret
+      CORS_ORIGINS: http://localhost:5173
+    depends_on:
+      - db
+
+  frontend:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://backend:8000/api/v1
+    command: bash -lc "npm install --legacy-peer-deps || true && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
