@@ -150,6 +150,7 @@ export default function ParentDashboard() {
                     <Typography variant="subtitle2">Task ID: {s.task_id}</Typography>
                     {s.note && <Typography variant="body2">Note: {s.note}</Typography>}
                     {s.bible_reference && <Typography variant="body2" color="primary">Reference: {s.bible_reference}</Typography>}
+                    {s.reflection && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>Reflection: {s.reflection}</Typography>}
                     <Box sx={{ mt: 1 }}>
                       <Button size="small" startIcon={<CheckIcon />} onClick={() => handleApproveSub(s.id)}>Approve</Button>
                       <Button size="small" color="error" startIcon={<CloseIcon />} onClick={() => handleRejectSub(s.id)}>Reject</Button>
