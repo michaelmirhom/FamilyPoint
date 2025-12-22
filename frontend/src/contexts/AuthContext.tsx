@@ -13,7 +13,7 @@ const AuthContext = createContext<AuthContextType>(null!);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+    const [token, setToken] = useState<string | null>(sessionStorage.getItem('token'));
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .then(res => setUser(res.data))
                 .catch(() => {
                     setToken(null);
-                    localStorage.removeItem('token');
+                    sessionStorage.removeItem('token');
                 })
                 .finally(() => setIsLoading(false));
         } else {
@@ -31,12 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [token]);
 
     const loginFn = (newToken: string) => {
-        localStorage.setItem('token', newToken);
+        sessionStorage.setItem('token', newToken);
         setToken(newToken);
     };
 
     const logoutFn = () => {
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         setToken(null);
         setUser(null);
     };
