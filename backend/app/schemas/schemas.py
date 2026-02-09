@@ -146,3 +146,21 @@ class ChildFullSummary(BaseModel):
     badges: List[ChildBadgeOut]
     # streaks: dict
 
+class AnnouncementCreate(BaseModel):
+    message: str
+
+class AnnouncementReadOut(BaseModel):
+    child_id: int
+    read_at: datetime.datetime
+    child_name: Optional[str] = None
+    class Config:
+        orm_mode = True
+
+class AnnouncementOut(BaseModel):
+    id: int
+    message: str
+    created_at: datetime.datetime
+    reads: List[AnnouncementReadOut] = []
+    class Config:
+        orm_mode = True
+

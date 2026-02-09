@@ -149,3 +149,32 @@ class ChildBadge(Base):
     child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     badge_id = Column(Integer, ForeignKey("badges.id"), nullable=False)
     awarded_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+    id = Column(Integer, primary_key=True, index=True)
+    parent_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    reads = relationship("AnnouncementRead", back_populates="announcement")
+    parent = relationship("User", foreign_keys=[parent_id])
+
+class AnnouncementRead(Base):
+    __tablename__ = "announcement_reads"
+    id = Column(Integer, primary_key=True, index=True)
+    announcement_id = Column(Integer, ForeignKey("announcements.id"), nullable=False)
+    child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    read_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    announcement = relationship("Announcement", back_populates="reads")
+    child = relationship("User", foreign_keys=[child_id])
+
+class AnnouncementDismissal(Base):
+    __tablename__ = "announcement_dismissals"
+    id = Column(Integer, primary_key=True, index=True)
+    announcement_id = Column(Integer, ForeignKey("announcements.id"), nullable=False)
+    child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    dismissed_at = Column(DateTime, default=datetime.datetime.utcnow)
+

@@ -21,7 +21,7 @@ app.add_middleware(
 from fastapi.staticfiles import StaticFiles
 
 # include routers
-from app.api.v1 import auth, children, tasks, submissions, points, settings, rewards, users, uploads
+from app.api.v1 import auth, children, tasks, submissions, points, settings, rewards, users, uploads, announcements
 
 # Mount static directory for uploads
 os.makedirs("static/uploads", exist_ok=True)
@@ -36,6 +36,7 @@ app.include_router(points.router, prefix="/api/v1/points")
 app.include_router(settings.router, prefix="/api/v1/settings")
 app.include_router(rewards.router, prefix="/api/v1/rewards")
 app.include_router(uploads.router, prefix="/api/v1/uploads")
+app.include_router(announcements.router, prefix="/api/v1/announcements")
 
 @app.on_event("startup")
 def on_startup():

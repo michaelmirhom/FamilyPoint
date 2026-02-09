@@ -1,25 +1,41 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
-import shutil
+import cloudinary
+import cloudinary.uploader
 import os
-import uuid
 from typing import List
 
 router = APIRouter()
 
-UPLOAD_DIR = "static/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Configure Cloudinary from environment variables
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
 @router.post("")
-def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...)):
+    """
+    Upload file to Cloudinary.
+    Works in production without ephemeral storage issues.
+    """
     try:
-        # Generate a unique filename using UUID
-        extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{extension}"
-        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+        # Read file contents
+        contents = await file.read()
         
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        return {"filename": unique_filename, "url": f"/static/uploads/{unique_filename}"}
+        # Upload to Cloudinary
+        upload_result = cloudinary.uploader.upload(
+            contents,
+            folder="familypoints",  # Organize files in a folder
+            resource_type="auto"  # Auto-detect if it's image/pdf/etc
+        )
+        
+        # Return the secure URL from Cloudinary
+        return {
+            "filename": upload_result.get("public_id"),
+            "url": upload_result.get("secure_url"),
+            "cloudinary_id": upload_result.get("public_id")
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")

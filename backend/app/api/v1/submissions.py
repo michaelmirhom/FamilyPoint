@@ -27,39 +27,51 @@ def create_submission(
         if not primary_evidence_path:
              primary_evidence_path = payload.evidence_files[0]
 
-    submission = models.Submission(
-        child_id=current_user.id,
-        task_id=payload.task_id,
-        note=payload.note,
-        bible_reference=payload.bible_reference,
-        reflection=payload.reflection,
-        evidence_file_path=primary_evidence_path
-    )
-    db.add(submission)
-    db.commit()
-    db.refresh(submission)
-
-    # Add evidence records
-    if payload.evidence_files:
-        for path in payload.evidence_files:
-            evidence = models.SubmissionEvidence(
-                submission_id=submission.id,
-                file_path=path,
-                file_type="unknown" # We could infer from extension
-            )
-            db.add(evidence)
-    elif payload.evidence_file_path:
-        # Fallback for old single file upload
-        evidence = models.SubmissionEvidence(
-            submission_id=submission.id,
-            file_path=payload.evidence_file_path,
-            file_type="unknown"
+    try:
+        submission = models.Submission(
+            child_id=current_user.id,
+            task_id=payload.task_id,
+            note=payload.note,
+            bible_reference=payload.bible_reference,
+            reflection=payload.reflection,
+            evidence_file_path=primary_evidence_path
         )
-        db.add(evidence)
-    
-    db.commit()
-    db.refresh(submission)
-    return submission
+        db.add(submission)
+        db.commit()
+        db.refresh(submission)
+
+        # Add evidence records
+        if payload.evidence_files:
+            for path in payload.evidence_files:
+                try:
+                    evidence = models.SubmissionEvidence(
+                        submission_id=submission.id,
+                        file_path=path,
+                        file_type="unknown" # We could infer from extension
+                    )
+                    db.add(evidence)
+                except Exception as e:
+                    # Log error but continue - don't fail the whole submission
+                    print(f"Error adding evidence record: {e}")
+        elif payload.evidence_file_path:
+            # Fallback for old single file upload
+            try:
+                evidence = models.SubmissionEvidence(
+                    submission_id=submission.id,
+                    file_path=payload.evidence_file_path,
+                    file_type="unknown"
+                )
+                db.add(evidence)
+            except Exception as e:
+                print(f"Error adding single evidence: {e}")
+        
+        db.commit()
+        db.refresh(submission)
+        return submission
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating submission: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating submission: {str(e)}")
 
 @router.get("/my", response_model=List[schemas.SubmissionOut])
 def my_submissions(

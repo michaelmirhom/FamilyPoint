@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Tab, Tabs, Typography, Paper, Grid, Button, Dialog, DialogTitle, DialogContent, TextField, Select, MenuItem, FormControl, InputLabel, Card, CardContent, CardActions, Chip, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
-import { listChildren, createChild, listTasks, createTask, listRewards, createReward, getPendingSubmissions, approveSubmission, rejectSubmission, getPendingRedemptions, approveRedemption, rejectRedemption, deleteChild, deleteTask, deleteReward, API_URL } from '../api';
+import { listChildren, createChild, listTasks, createTask, listRewards, createReward, getPendingSubmissions, approveSubmission, rejectSubmission, getPendingRedemptions, approveRedemption, rejectRedemption, deleteChild, deleteTask, deleteReward, API_URL, listAnnouncements, createAnnouncement, deleteAnnouncement } from '../api';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CampaignIcon from '@mui/icons-material/Campaign';
 import { IconButton } from '@mui/material';
 
 function TabPanel(props: any) {
@@ -35,6 +36,7 @@ export default function ParentDashboard() {
   const [rewards, setRewards] = useState<any[]>([]);
   const [pendingSubs, setPendingSubs] = useState<any[]>([]);
   const [pendingRedemptions, setPendingRedemptions] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [openChildDialog, setOpenChildDialog] = useState(false);
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
   const [openRewardDialog, setOpenRewardDialog] = useState(false);
@@ -44,6 +46,7 @@ export default function ParentDashboard() {
   const [newChild, setNewChild] = useState({ name: '', username: '', password: '' });
   const [newTask, setNewTask] = useState({ name: '', category: 'FAITH', points: 10, description: '' });
   const [newReward, setNewReward] = useState({ name: '', type: 'PRIVILEGE', cost_points: 100, description: '' });
+  const [newAnnouncement, setNewAnnouncement] = useState('');
 
   const fetchData = async () => {
     try {
@@ -57,6 +60,9 @@ export default function ParentDashboard() {
         const t = await listTasks(); setTasks(t.data);
       } else if (tab === 3) { // Rewards
         const r = await listRewards(); setRewards(r.data);
+      } else if (tab === 4) { // Announcements
+        const a = await listAnnouncements(); setAnnouncements(a.data);
+        const c = await listChildren(); setChildrenList(c.data); // Need children to map names
       }
     } catch (e) { console.error(e); }
   };
@@ -117,6 +123,7 @@ export default function ParentDashboard() {
           <Tab label="Children" />
           <Tab label="Tasks Library" />
           <Tab label="Rewards" />
+          <Tab label="Announcements" />
         </Tabs>
       </Box>
 
@@ -331,6 +338,85 @@ export default function ParentDashboard() {
             <Button onClick={handleCreateReward} variant="contained" fullWidth sx={{ mt: 2 }}>Create Reward</Button>
           </DialogContent>
         </Dialog>
+      </TabPanel>
+      <TabPanel value={tab} index={4}>
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>Announcements</Typography>
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <Typography variant="subtitle2" gutterBottom>Send New Announcement</Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Write something to your children..."
+                value={newAnnouncement}
+                onChange={(e) => setNewAnnouncement(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                startIcon={<CampaignIcon />}
+                onClick={async () => {
+                  if (!newAnnouncement.trim()) return;
+                  await createAnnouncement({ message: newAnnouncement });
+                  setNewAnnouncement('');
+                  fetchData();
+                }}
+              >
+                Send
+              </Button>
+            </Box>
+          </Paper>
+
+          <List>
+            {announcements.map((a: any) => (
+              <Paper key={a.id} sx={{ mb: 2 }} variant="outlined">
+                <ListItem>
+                  <ListItemText
+                    primary={a.message}
+                    secondary={new Date(a.created_at).toLocaleString()}
+                  />
+                  <IconButton
+                    edge="end"
+                    color="error"
+                    onClick={async () => {
+                      if (window.confirm('Delete this announcement?')) {
+                        await deleteAnnouncement(a.id);
+                        fetchData();
+                      }
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItem>
+                {a.reads && a.reads.length > 0 && (
+                  <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="caption" color="textSecondary">Seen by:</Typography>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                      {a.reads.map((r: any) => {
+                        const child = childrenList.find((c: any) => c.id === r.child_id);
+                        return (
+                          <Chip
+                            key={r.child_id}
+                            label={`${child ? child.name : 'Unknown'} (${new Date(r.read_at).toLocaleTimeString()})`}
+                            size="small"
+                            color="success"
+                            variant="outlined"
+                            icon={<CheckIcon />}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                )}
+                {(!a.reads || a.reads.length === 0) && (
+                  <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="caption" color="textSecondary">Not seen yet</Typography>
+                  </Box>
+                )}
+              </Paper>
+            ))}
+          </List>
+        </Box>
       </TabPanel>
       <Dialog open={!!viewEvidence} onClose={() => setViewEvidence(null)} maxWidth="md" fullWidth>
         <DialogTitle>View Evidence</DialogTitle>

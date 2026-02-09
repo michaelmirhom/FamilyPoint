@@ -65,5 +65,11 @@ export const getPendingRedemptions = () => api.get('/api/v1/rewards/redemptions/
 export const approveRedemption = (id: number) => api.post(`/api/v1/rewards/redemptions/${id}/approve`);
 export const rejectRedemption = (id: number) => api.post(`/api/v1/rewards/redemptions/${id}/reject`);
 
+// Announcements
+export const createAnnouncement = (data: { message: string }) => api.post('/api/v1/announcements', data);
+export const listAnnouncements = () => api.get('/api/v1/announcements');
+export const markAnnouncementRead = (id: number) => api.post(`/api/v1/announcements/${id}/read`);
+export const deleteAnnouncement = (id: number) => api.delete(`/api/v1/announcements/${id}`);
+
 
 export default api;

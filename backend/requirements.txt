@@ -14,3 +14,4 @@ PyJWT==2.8.0
 python-multipart
 
 python-multipart==0.0.20
+cloudinary==1.36.0

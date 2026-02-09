@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Grid, Paper, Card, CardContent, Button, Dialog, DialogTitle, DialogContent, TextField, Chip, LinearProgress, Alert, Badge, List, ListItem, ListItemButton, ListItemText, ListItemIcon, Divider } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
-import { getChildSummary, listTasks, submitTask, listRewards, redeemReward, getMySubmissions, uploadFile } from '../api';
+import { getChildSummary, listTasks, submitTask, listRewards, redeemReward, getMySubmissions, uploadFile, listAnnouncements, markAnnouncementRead, deleteAnnouncement } from '../api';
 import StarIcon from '@mui/icons-material/Star';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -9,6 +9,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CampaignIcon from '@mui/icons-material/Campaign';
 
 export default function ChildDashboard() {
     const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function ChildDashboard() {
     const [tasks, setTasks] = useState<any[]>([]);
     const [rewards, setRewards] = useState<any[]>([]);
     const [mySubs, setMySubs] = useState<any[]>([]);
+    const [announcements, setAnnouncements] = useState<any[]>([]);
 
     const [openSubmit, setOpenSubmit] = useState(false);
 
@@ -41,6 +43,8 @@ export default function ChildDashboard() {
                 setRewards(r.data.filter((x: any) => x.is_active));
                 const s = await getMySubmissions();
                 setMySubs(s.data);
+                const a = await listAnnouncements();
+                setAnnouncements(a.data);
             } catch (e) { console.error(e); }
         }
     };
@@ -157,6 +161,18 @@ export default function ChildDashboard() {
 
     const progressCheck = level < 5 ? ((points - (level === 1 ? 0 : (level === 2 ? 200 : (level === 3 ? 400 : 700)))) / (nextLevelPoints - (level === 1 ? 0 : (level === 2 ? 200 : (level === 3 ? 400 : 700)))) * 100) : 100;
 
+    const badgeCount = summary.badges.length;
+
+    const handleViewAnnouncement = async (announcementId: number) => {
+        await markAnnouncementRead(announcementId);
+        fetchData(); // Refresh to update read status
+    };
+
+    // Check if child has read an announcement
+    const hasRead = (announcement: any) => {
+        return announcement.reads?.some((r: any) => r.child_id === user?.id);
+    };
+
     return (
         <Box sx={{ pb: 5 }}>
             {/* HEADER STATS */}
@@ -188,6 +204,59 @@ export default function ChildDashboard() {
                     </Grid>
                 </Grid>
             </Paper>
+
+            {/* ANNOUNCEMENTS */}
+            {announcements.length > 0 && (
+                <Paper sx={{ p: 2, mb: 3, bgcolor: '#fff3e0' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <CampaignIcon sx={{ mr: 1, color: '#ff9800' }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Messages from Parents</Typography>
+                    </Box>
+                    {announcements.map((a: any) => (
+                        <Paper
+                            key={a.id}
+                            sx={{
+                                p: 2,
+                                mb: 1,
+                                cursor: hasRead(a) ? 'default' : 'pointer',
+                                bgcolor: hasRead(a) ? '#f5f5f5' : '#ffffff',
+                                border: hasRead(a) ? '1px solid #e0e0e0' : '2px solid #ff9800',
+                                '&:hover': !hasRead(a) ? { bgcolor: '#fff8e1' } : {}
+                            }}
+                            onClick={() => !hasRead(a) && handleViewAnnouncement(a.id)}
+                        >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body1" sx={{ fontWeight: hasRead(a) ? 'normal' : 'bold' }}>
+                                        {a.message}
+                                    </Typography>
+                                    <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
+                                        {new Date(a.created_at).toLocaleDateString()}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    {!hasRead(a) && (
+                                        <Chip label="NEW" color="warning" size="small" />
+                                    )}
+                                    {hasRead(a) && (
+                                        <Button
+                                            size="small"
+                                            color="error"
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                await deleteAnnouncement(a.id);
+                                                fetchData();
+                                            }}
+                                        >
+                                            Dismiss
+                                        </Button>
+                                    )}
+                                </Box>
+                            </Box>
+                        </Paper>
+                    ))}
+                </Paper>
+            )}
 
             <Grid container spacing={4}>
                 {/* TASKS */}
