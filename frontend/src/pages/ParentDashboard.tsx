@@ -141,7 +141,6 @@ export default function ParentDashboard() {
                     <CardContent>
                       <Typography variant="h6">{c.name}</Typography>
                       <Typography color="textSecondary">@{c.username}</Typography>
-                      {/* Ideally we fetch points summary here too, but listing doesn't give it. We'd need to fetch indiv or enrich list.*/}
                     </CardContent>
                   </Card>
                 </Grid>
@@ -424,10 +423,19 @@ export default function ParentDashboard() {
         <DialogContent>
           {viewEvidence && (
             viewEvidence.toLowerCase().endsWith('.pdf') ? (
-              <Box sx={{ width: '100%', height: '500px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant="body2">Previewing PDF:</Typography>
-                <iframe src={getEvidenceUrl(viewEvidence)} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF Evidence" />
-                <Button variant="contained" href={getEvidenceUrl(viewEvidence)} target="_blank" rel="noopener noreferrer">Download PDF</Button>
+              <Box sx={{ width: '100%', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                <Typography variant="h6">PDF Document</Typography>
+                <Typography variant="body2" color="text.secondary">PDFs must be opened in a new tab for security.</Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  href={getEvidenceUrl(viewEvidence)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  startIcon={<AttachFileIcon />}
+                >
+                  Open PDF in New Window
+                </Button>
               </Box>
             ) : (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
