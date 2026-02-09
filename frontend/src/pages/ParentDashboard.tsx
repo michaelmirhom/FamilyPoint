@@ -6,6 +6,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CampaignIcon from '@mui/icons-material/Campaign';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { IconButton } from '@mui/material';
 
 function TabPanel(props: any) {
@@ -112,7 +113,14 @@ export default function ParentDashboard() {
 
   const getEvidenceUrl = (path: string) => {
     if (!path) return '';
-    if (path.startsWith('http')) return path;
+    // If it's already a full URL (even if it has typos like missing colons)
+    if (path.includes('//')) {
+      // Fix common typos like 'https//'
+      if (path.startsWith('http') && !path.startsWith('http:')) {
+        return path.replace('http', 'http:').replace('https:', 'https://').replace('https:///', 'https://');
+      }
+      return path;
+    }
     return `${API_URL}${path}`;
   };
 
@@ -132,11 +140,11 @@ export default function ParentDashboard() {
       <TabPanel value={tab} index={0}>
         <Grid container spacing={3}>
           {/* Stats */}
-          <Grid item xs={12}>
+          <Grid xs={12}>
             <Typography variant="h6" gutterBottom>Children Status</Typography>
             <Grid container spacing={2}>
               {childrenList.map((c: any) => (
-                <Grid item xs={12} sm={4} key={c.id}>
+                <Grid xs={12} sm={4} key={c.id}>
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="h6">{c.name}</Typography>
@@ -149,7 +157,7 @@ export default function ParentDashboard() {
           </Grid>
 
           {/* Pending Submissions */}
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <Typography variant="h6" gutterBottom>Pending Tasks</Typography>
             {pendingSubs.length === 0 ? <Typography color="textSecondary">No pending submissions.</Typography> : (
               <List>
@@ -222,7 +230,7 @@ export default function ParentDashboard() {
         <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenChildDialog(true)} sx={{ mb: 2 }}>Add Child</Button>
         <Grid container spacing={2}>
           {childrenList.map((c: any) => (
-            <Grid item xs={12} sm={6} md={4} key={c.id}>
+            <Grid xs={12} sm={6} md={4} key={c.id}>
               <Card>
                 <CardContent>
                   <Typography variant="h5">{c.name}</Typography>
