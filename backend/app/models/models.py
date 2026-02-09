@@ -71,9 +71,22 @@ class Submission(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     approved_at = Column(DateTime, nullable=True)
     reviewed_by_parent_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    # Deprecated: single file path kept for backward compatibility if needed, but we will move to relation
+    evidence_file_path = Column(String, nullable=True)
 
     task = relationship("Task", back_populates="submissions")
     child = relationship("User", foreign_keys=[child_id])
+    evidence = relationship("SubmissionEvidence", back_populates="submission")
+
+class SubmissionEvidence(Base):
+    __tablename__ = "submission_evidence"
+    id = Column(Integer, primary_key=True, index=True)
+    submission_id = Column(Integer, ForeignKey("submissions.id"), nullable=False)
+    file_path = Column(String, nullable=False)
+    file_type = Column(String, nullable=True) # e.g. 'image/jpeg', 'application/pdf'
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    submission = relationship("Submission", back_populates="evidence")
 
 class PointsLedger(Base):
     __tablename__ = "points_ledger"

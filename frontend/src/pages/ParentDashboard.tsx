@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Tab, Tabs, Typography, Paper, Grid, Button, Dialog, DialogTitle, DialogContent, TextField, Select, MenuItem, FormControl, InputLabel, Card, CardContent, CardActions, Chip, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
-import { listChildren, createChild, listTasks, createTask, listRewards, createReward, getPendingSubmissions, approveSubmission, rejectSubmission, getPendingRedemptions, approveRedemption, rejectRedemption, deleteChild, deleteTask, deleteReward } from '../api';
+import { listChildren, createChild, listTasks, createTask, listRewards, createReward, getPendingSubmissions, approveSubmission, rejectSubmission, getPendingRedemptions, approveRedemption, rejectRedemption, deleteChild, deleteTask, deleteReward, API_URL } from '../api';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -38,6 +38,7 @@ export default function ParentDashboard() {
   const [openChildDialog, setOpenChildDialog] = useState(false);
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
   const [openRewardDialog, setOpenRewardDialog] = useState(false);
+  const [viewEvidence, setViewEvidence] = useState<string | null>(null);
 
   // Form states
   const [newChild, setNewChild] = useState({ name: '', username: '', password: '' });
@@ -151,6 +152,34 @@ export default function ParentDashboard() {
                     {s.note && <Typography variant="body2">Note: {s.note}</Typography>}
                     {s.bible_reference && <Typography variant="body2" color="primary">Reference: {s.bible_reference}</Typography>}
                     {s.reflection && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>Reflection: {s.reflection}</Typography>}
+
+                    {(s.evidence && s.evidence.length > 0) ? (
+                      <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', width: '100%' }}>Evidence:</Typography>
+                        {s.evidence.map((ev: any, index: number) => (
+                          <Button
+                            key={ev.id}
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setViewEvidence(ev.file_path)}
+                          >
+                            View Item {index + 1}
+                          </Button>
+                        ))}
+                      </Box>
+                    ) : s.evidence_file_path && (
+                      <Box sx={{ mt: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => setViewEvidence(s.evidence_file_path)}
+                          sx={{ mt: 1 }}
+                        >
+                          View Evidence
+                        </Button>
+                      </Box>
+                    )}
+
                     <Box sx={{ mt: 1 }}>
                       <Button size="small" startIcon={<CheckIcon />} onClick={() => handleApproveSub(s.id)}>Approve</Button>
                       <Button size="small" color="error" startIcon={<CloseIcon />} onClick={() => handleRejectSub(s.id)}>Reject</Button>
@@ -303,6 +332,31 @@ export default function ParentDashboard() {
           </DialogContent>
         </Dialog>
       </TabPanel>
+      <Dialog open={!!viewEvidence} onClose={() => setViewEvidence(null)} maxWidth="md" fullWidth>
+        <DialogTitle>View Evidence</DialogTitle>
+        <DialogContent>
+          {viewEvidence && (
+            viewEvidence.toLowerCase().endsWith('.pdf') ? (
+              <Box sx={{ width: '100%', height: '500px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography variant="body2">Previewing PDF:</Typography>
+                <iframe src={`${API_URL}${viewEvidence}`} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF Evidence" />
+                <Button variant="contained" href={`${API_URL}${viewEvidence}`} target="_blank" rel="noopener noreferrer">Download PDF</Button>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <img
+                  src={`${API_URL}${viewEvidence}`}
+                  alt="Evidence Full"
+                  style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                />
+              </Box>
+            )
+          )}
+        </DialogContent>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button onClick={() => setViewEvidence(null)}>Close</Button>
+        </Box>
+      </Dialog>
     </Box>
   );
 }

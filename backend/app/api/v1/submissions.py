@@ -19,14 +19,44 @@ def create_submission(
     if current_user.role != models.RoleEnum.CHILD:
         raise HTTPException(status_code=403, detail="Only children can submit tasks")
         
+    # Handle evidence files
+    # If using new list
+    primary_evidence_path = payload.evidence_file_path
+    
+    if payload.evidence_files and len(payload.evidence_files) > 0:
+        if not primary_evidence_path:
+             primary_evidence_path = payload.evidence_files[0]
+
     submission = models.Submission(
         child_id=current_user.id,
         task_id=payload.task_id,
         note=payload.note,
         bible_reference=payload.bible_reference,
-        reflection=payload.reflection
+        reflection=payload.reflection,
+        evidence_file_path=primary_evidence_path
     )
     db.add(submission)
+    db.commit()
+    db.refresh(submission)
+
+    # Add evidence records
+    if payload.evidence_files:
+        for path in payload.evidence_files:
+            evidence = models.SubmissionEvidence(
+                submission_id=submission.id,
+                file_path=path,
+                file_type="unknown" # We could infer from extension
+            )
+            db.add(evidence)
+    elif payload.evidence_file_path:
+        # Fallback for old single file upload
+        evidence = models.SubmissionEvidence(
+            submission_id=submission.id,
+            file_path=payload.evidence_file_path,
+            file_type="unknown"
+        )
+        db.add(evidence)
+    
     db.commit()
     db.refresh(submission)
     return submission

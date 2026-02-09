@@ -52,6 +52,16 @@ class SubmissionCreate(BaseModel):
     note: Optional[str] = None
     bible_reference: Optional[str] = None
     reflection: Optional[str] = None
+    evidence_file_path: Optional[str] = None # Deprecated
+    evidence_files: Optional[List[str]] = None
+
+class SubmissionEvidenceOut(BaseModel):
+    id: int
+    file_path: str
+    file_type: Optional[str]
+    created_at: datetime.datetime
+    class Config:
+        orm_mode = True
 
 class SubmissionOut(BaseModel):
     id: int
@@ -61,6 +71,8 @@ class SubmissionOut(BaseModel):
     note: Optional[str]
     bible_reference: Optional[str]
     reflection: Optional[str]
+    evidence_file_path: Optional[str] # Deprecated
+    evidence: List[SubmissionEvidenceOut] = []
     created_at: datetime.datetime
     approved_at: Optional[datetime.datetime]
     class Config:

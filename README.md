@@ -6,6 +6,9 @@ FamilyPoints is a gamified application designed to help parents encourage good h
 - **Parent Dashboard**: Manage children, create tasks, approve submissions, and handle reward redemptions.
 - **Child Dashboard**: Gamified view with levels, badges, streaks, and a rewards store.
 - **Task System**: Supports multiple categories (Faith, School, Home, Kindness).
+- **Evidence Upload**: Children can upload photos or documents as proof of task completion. Includes a custom in-app camera for mobile and desktop devices.
+- **Multiple File Support**: Submissions can include multiple evidence files (images or PDFs).
+- **Enhanced Review**: Parents can view all attached evidence directly within the dashboard before approving tasks.
 - **Rewards**: Redeem points for privileges, money, or gifts.
 - **Professional UI**: Built with React, TypeScript, and Material UI.
 
@@ -13,6 +16,7 @@ FamilyPoints is a gamified application designed to help parents encourage good h
 - **Backend**: Python (FastAPI), SQLAlchemy, PostgreSQL.
 - **Frontend**: React, TypeScript, Vite, Material UI.
 - **Infrastructure**: Docker, Docker Compose, Nginx.
+- **Media**: Custom Camera Interface (using MediaDevices API), File Upload Handling (python-multipart).
 
 ## Getting Started
 
@@ -33,6 +37,8 @@ docker-compose up --build
 ```bash
 cd backend
 pip install -r requirements.txt
+# Run migrations if database is fresh or updated
+python migrate_evidence.py 
 uvicorn app.main:app --reload
 ```
 **Frontend**
@@ -48,8 +54,8 @@ The system is seeded with:
 - **Child**: `selina` / `password`
 
 ## Project Structure
-- `backend/app/api`: API Routers (Auth, Children, Tasks, Rewards, Settings).
-- `backend/app/models`: SQLAlchemy Database Models.
+- `backend/app/api`: API Routers (Auth, Children, Tasks, Rewards, Settings, Submissions, Uploads).
+- `backend/app/models`: SQLAlchemy Database Models (including new SubmissionEvidence).
 - `backend/app/services`: Business logic for Badges and Streaks.
 - `frontend/src/pages`: React Pages (ParentDashboard, ChildDashboard).
 - `frontend/src/components`: UI Components.

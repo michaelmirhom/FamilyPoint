@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Debug: Log the API URL being used
 console.log('[FamilyPoints] API URL:', API_URL);
@@ -33,6 +33,17 @@ export const deleteChild = (id: number) => api.delete(`/api/v1/children/${id}`);
 export const createTask = (data: any) => api.post('/api/v1/tasks', data);
 export const listTasks = () => api.get('/api/v1/tasks');
 export const deleteTask = (id: number) => api.delete(`/api/v1/tasks/${id}`);
+
+// Uploads
+export const uploadFile = (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/api/v1/uploads', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
 
 // Submissions
 export const submitTask = (data: any) => api.post('/api/v1/submissions', data);
