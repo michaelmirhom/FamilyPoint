@@ -113,15 +113,34 @@ export default function ParentDashboard() {
 
   const getEvidenceUrl = (path: string) => {
     if (!path) return '';
-    // If it's already a full URL (even if it has typos like missing colons)
-    if (path.includes('//')) {
-      // Fix common typos like 'https//'
-      if (path.startsWith('http') && !path.startsWith('http:')) {
-        return path.replace('http', 'http:').replace('https:', 'https://').replace('https:///', 'https://');
-      }
-      return path;
+
+    let cleanPath = path;
+
+    // Fix specifically mangled protocol from previous failed migration logic
+    if (cleanPath.includes('http:s//')) {
+      cleanPath = cleanPath.replace('http:s//', 'https://');
     }
-    return `${API_URL}${path}`;
+    if (cleanPath.includes('http://s//')) {
+      cleanPath = cleanPath.replace('http://s//', 'https://');
+    }
+
+    // If it's a Cloudinary URL or has a protocol
+    if (cleanPath.includes('cloudinary.com') || cleanPath.includes('http')) {
+      // Fix missing colons: https// -> https://
+      if (cleanPath.startsWith('https//')) cleanPath = cleanPath.replace('https//', 'https://');
+      if (cleanPath.startsWith('http//')) cleanPath = cleanPath.replace('http//', 'http://');
+
+      // Fix potential double URL issues from older dashboard logic
+      if (cleanPath.includes('onrender.comhttp')) {
+        cleanPath = cleanPath.substring(cleanPath.lastIndexOf('http'));
+      }
+
+      // Ensure it's not a relative path that accidentally looks like a domain
+      if (cleanPath.startsWith('http') || cleanPath.startsWith('https')) return cleanPath;
+    }
+
+    // Fallback for local relative paths
+    return `${API_URL}${cleanPath}`;
   };
 
   return (
@@ -206,7 +225,7 @@ export default function ParentDashboard() {
           </Grid>
 
           {/* Pending Rewards */}
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <Typography variant="h6" gutterBottom>Reward Requests</Typography>
             {pendingRedemptions.length === 0 ? <Typography color="textSecondary">No pending requests.</Typography> : (
               <List>
@@ -275,7 +294,7 @@ export default function ParentDashboard() {
         <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenTaskDialog(true)} sx={{ mb: 2 }}>Create Custom Task</Button>
         <Grid container spacing={2}>
           {tasks.map((t: any) => (
-            <Grid item xs={12} sm={6} key={t.id}>
+            <Grid xs={12} sm={6} key={t.id}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -314,7 +333,7 @@ export default function ParentDashboard() {
         <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenRewardDialog(true)} sx={{ mb: 2 }}>Create Reward</Button>
         <Grid container spacing={2}>
           {rewards.map((r: any) => (
-            <Grid item xs={12} sm={6} md={4} key={r.id}>
+            <Grid xs={12} sm={6} md={4} key={r.id}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
