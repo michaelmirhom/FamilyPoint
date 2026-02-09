@@ -110,9 +110,10 @@ export default function ParentDashboard() {
     }
   };
 
-  const handleUseTemplate = (template: any) => {
-    setNewTask({ ...template });
-    setOpenTaskDialog(true);
+  const getEvidenceUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return `${API_URL}${path}`;
   };
 
   return (
@@ -425,13 +426,13 @@ export default function ParentDashboard() {
             viewEvidence.toLowerCase().endsWith('.pdf') ? (
               <Box sx={{ width: '100%', height: '500px', display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Typography variant="body2">Previewing PDF:</Typography>
-                <iframe src={`${API_URL}${viewEvidence}`} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF Evidence" />
-                <Button variant="contained" href={`${API_URL}${viewEvidence}`} target="_blank" rel="noopener noreferrer">Download PDF</Button>
+                <iframe src={getEvidenceUrl(viewEvidence)} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF Evidence" />
+                <Button variant="contained" href={getEvidenceUrl(viewEvidence)} target="_blank" rel="noopener noreferrer">Download PDF</Button>
               </Box>
             ) : (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <img
-                  src={`${API_URL}${viewEvidence}`}
+                  src={getEvidenceUrl(viewEvidence)}
                   alt="Evidence Full"
                   style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
                 />
