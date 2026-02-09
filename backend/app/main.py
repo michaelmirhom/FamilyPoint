@@ -40,7 +40,32 @@ app.include_router(announcements.router, prefix="/api/v1/announcements")
 
 @app.on_event("startup")
 def on_startup():
+    from sqlalchemy import text
+    print("Running startup migrations...")
+    
+    # Create all tables that don't exist
     Base.metadata.create_all(bind=engine)
+    
+    # Manually add columns that might be missing in production (Neon)
+    with engine.connect() as conn:
+        try:
+            # 1. Add evidence_file_path to submissions if missing
+            result = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='submissions' AND column_name='evidence_file_path';
+            """))
+            if not result.fetchone():
+                print("Adding 'evidence_file_path' column to 'submissions' table...")
+                conn.execute(text("ALTER TABLE submissions ADD COLUMN evidence_file_path VARCHAR;"))
+                conn.commit()
+                print("Column added successfully.")
+            
+            # Add any other missing columns for future features here
+            
+        except Exception as e:
+            print(f"Startup migration error: {e}")
+
     if os.getenv("SEED_DB", "false").lower() in ("1", "true", "yes"):
         seed_data()
 
